@@ -49,12 +49,14 @@ class RunSupervisor extends Command
 
         if (is_null($params)) {
             $this->error("I can't find the {$name} parameters in the configuration!");
+            return FALSE;
         }
 
         $folder = str_finish(config('supervisor.folder'), '/');
 
         if (!is_dir($folder)) {
             $this->error("The {$folder} directory doesn't exist!");
+            return FALSE;
         }
 
         $file = $folder . $name . '.lock';
