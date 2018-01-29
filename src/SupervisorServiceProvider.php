@@ -7,7 +7,7 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 
 use FilippoToso\LaravelSupervisor\RunSupervisor;
 
-class SupervisorProvider extends ServiceProvider
+class SupervisorServiceProvider extends ServiceProvider
 {
 
     /**

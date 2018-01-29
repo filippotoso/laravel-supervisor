@@ -20,7 +20,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "FilippoToso\\LaravelSupervisor\\SupervisorProvider"
+                "FilippoToso\\LaravelSupervisor\\SupervisorServiceProvider"
             ]
         }
     }
