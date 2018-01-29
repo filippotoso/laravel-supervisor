@@ -3,11 +3,11 @@
 namespace FilippoToso\LaravelSupervisor;
 
 use Illuminate\Support\Facades\Event;
-use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as BaseServiceProvider;
 
 use FilippoToso\LaravelSupervisor\RunSupervisor;
 
-class ServiceProvider extends ServiceProvider
+class ServiceProvider extends BaseServiceProvider
 {
 
     /**
