@@ -3,6 +3,7 @@
 namespace FilippoToso\LaravelSupervisor;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 
 class RunSupervisor extends Command
 {
