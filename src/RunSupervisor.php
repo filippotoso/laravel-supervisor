@@ -55,6 +55,10 @@ class RunSupervisor extends Command
         $folder = str_finish(config('supervisor.folder'), '/');
 
         if (!is_dir($folder)) {
+            mkdir($folder, 0777, true);
+        }
+
+        if (!is_dir($folder)) {
             $this->error("The {$folder} directory doesn't exist!");
             return FALSE;
         }
