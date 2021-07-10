@@ -79,20 +79,6 @@ class RunSupervisor extends Command
         }
     }
 
-    protected function prepare()
-    {
-        $this->log('Preparing folder %s', $this->folder);
-
-        if (!is_dir($this->folder)) {
-            mkdir($this->folder, 0777, true);
-        }
-
-        if (!is_dir($this->folder)) {
-            $this->error("The {$this->folder} directory doesn't exist!");
-            return FALSE;
-        }
-    }
-
     protected function commandToString($command, $params)
     {
         $result = $command;
