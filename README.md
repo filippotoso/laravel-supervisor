@@ -30,3 +30,11 @@ php artisan vendor:publish --provider="FilippoToso\LaravelSupervisor\SupervisorS
 ```
 
 In the configuration file you can find useful details.
+
+## Limitations
+
+This package starts a command at each execution. This means that, if you have configured 5 commands to be executed, it can take up to 5 minutes to start them all.
+It also means that's best to place the most important commands (i.e. the queue) at the beginning of the commnads array.
+
+If this limitation is a dealbreaker for you, just use the real [supervisor](http://supervisord.org/)!
+

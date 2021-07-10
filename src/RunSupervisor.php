@@ -2,33 +2,40 @@
 
 namespace FilippoToso\LaravelSupervisor;
 
+use FilippoToso\LaravelSupervisor\Traits\Supervisorable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 
 class RunSupervisor extends Command
 {
+    use Supervisorable;
+
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'supervisor:run {--name=default}';
+    protected $signature = 'supervisor:run {--debug}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Run supervisor to start the queue from crontab';
+    protected $description = 'Run supervisor to start the configured long lived Artisan commands';
 
     /**
-     * Create a new command instance.
+     * The folder where the lock files will be stored.
      *
-     * @return void
+     * @var string
      */
+    protected $folder;
+
     public function __construct()
     {
         parent::__construct();
+
+        $this->folder = $this->folder();
     }
 
     /**
@@ -38,41 +45,62 @@ class RunSupervisor extends Command
      */
     public function handle()
     {
+        $this->prepare();
 
-        $name = $this->option('name');
+        $commands = config('supervisor.commands', []);
 
-        if ($name == 'default') {
-            $params = config('supervisor.default');
-        } else {
-            $params = config('supervisor.queues.' . $name);
+        foreach ($commands as $name => $command) {
+            $this->do($name, $command['command'], $command['params'] ?? []);
         }
-
-        if (is_null($params)) {
-            $this->error("I can't find the {$name} parameters in the configuration!");
-            return FALSE;
-        }
-
-        $folder = str_finish(config('supervisor.folder'), '/');
-
-        if (!is_dir($folder)) {
-            mkdir($folder, 0777, true);
-        }
-
-        if (!is_dir($folder)) {
-            $this->error("The {$folder} directory doesn't exist!");
-            return FALSE;
-        }
-
-        $file = $folder . $name . '.lock';
-
-        $handle = fopen($file, 'w+');
-
-        if (flock($handle, LOCK_EX | LOCK_NB)) {
-            Artisan::call('queue:work', $params);
-        }
-
-        fclose($handle);
-
     }
 
+    protected function do($name, $command, $params)
+    {
+        $this->log('Ready to run the %s command (%s)', $name, $this->commandToString($command, $params));
+
+        while (!file_exists($this->stopFile())) {
+            $file = $this->folder . $name . '.lock';
+
+            $handle = fopen($file, 'w+');
+
+            if (flock($handle, LOCK_EX | LOCK_NB)) {
+                $this->log('Executing command %s', $name);
+                Artisan::call($command, $params);
+            } else {
+                $this->log('Command %s already running', $name);
+                break;
+            }
+
+            fclose($handle);
+        }
+
+        if (file_exists($this->stopFile())) {
+            unlink($this->stopFile());
+        }
+    }
+
+    protected function prepare()
+    {
+        $this->log('Preparing folder %s', $this->folder);
+
+        if (!is_dir($this->folder)) {
+            mkdir($this->folder, 0777, true);
+        }
+
+        if (!is_dir($this->folder)) {
+            $this->error("The {$this->folder} directory doesn't exist!");
+            return FALSE;
+        }
+    }
+
+    protected function commandToString($command, $params)
+    {
+        $result = $command;
+
+        foreach ($params as $key => $value) {
+            $result .= ' ' . (is_int($key) ? $value : $key . '=' . $value);
+        }
+
+        return trim($result);
+    }
 }

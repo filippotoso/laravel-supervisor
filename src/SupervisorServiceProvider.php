@@ -2,10 +2,7 @@
 
 namespace FilippoToso\LaravelSupervisor;
 
-use Illuminate\Support\Facades\Event;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-
-use FilippoToso\LaravelSupervisor\RunSupervisor;
 
 class SupervisorServiceProvider extends ServiceProvider
 {
@@ -17,7 +14,6 @@ class SupervisorServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-
         parent::boot();
 
         $this->publishes([
@@ -26,8 +22,8 @@ class SupervisorServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([RunSupervisor::class]);
+            $this->commands([StopSupervisor::class]);
         }
-
     }
 
     /**
@@ -39,9 +35,8 @@ class SupervisorServiceProvider extends ServiceProvider
     {
 
         $this->mergeConfigFrom(
-            dirname(__DIR__) . '/config/default.php', 'supervisor'
+            dirname(__DIR__) . '/config/default.php',
+            'supervisor'
         );
-
     }
-
 }
