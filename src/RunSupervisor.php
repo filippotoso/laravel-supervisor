@@ -31,11 +31,23 @@ class RunSupervisor extends Command
      */
     protected $folder;
 
+    protected $lockFiles = [];
+
     public function __construct()
     {
         parent::__construct();
 
+        $this->setup();
+    }
+
+    protected function setup()
+    {
         $this->folder = $this->folder();
+
+        register_shutdown_function([$this, 'shutdown']);
+        pcntl_signal(SIGINT,  [$this, 'shutdown']);
+        pcntl_signal(SIGTERM, [$this, 'shutdown']);
+        pcntl_signal(SIGHUP,  [$this, 'shutdown']);
     }
 
     /**
@@ -61,21 +73,48 @@ class RunSupervisor extends Command
         while (!file_exists($this->stopFile())) {
             $file = $this->folder . $name . '.lock';
 
-            $handle = fopen($file, 'w+');
-
-            if (flock($handle, LOCK_EX | LOCK_NB)) {
-                $this->log('Executing command %s', $name);
-                Artisan::call($command, $params);
-            } else {
+            if (file_exists($file)) {
                 $this->log('Command %s already running', $name);
                 break;
             }
 
-            fclose($handle);
+            $this->log('Executing command %s', $name);
+            Artisan::call($command, $params);
+
+            $this->createLockFile($file);
         }
 
         if (file_exists($this->stopFile())) {
             unlink($this->stopFile());
+        }
+    }
+
+    protected function createLockFile($file)
+    {
+        touch($file);
+
+        $this->lockFiles[] = $file;
+    }
+
+    /**
+     * Destruct the class
+     */
+    public function __destruct()
+    {
+        $this->shutdown();
+    }
+
+    /**
+     * Shutdown function used to cleanup. Do not call directly
+     *
+     * @return void
+     */
+    public function shutdown()
+    {
+        foreach ($this->lockFiles as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+            }
         }
     }
 
