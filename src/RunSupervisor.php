@@ -81,10 +81,10 @@ class RunSupervisor extends Command
                 break;
             }
 
+            $this->createLockFile($file);
+
             $this->log('Executing command %s', $name);
             Artisan::call($command, $params);
-
-            $this->createLockFile($file);
         }
 
         if (file_exists($this->stopFile())) {
