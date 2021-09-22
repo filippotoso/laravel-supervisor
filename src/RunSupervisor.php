@@ -45,9 +45,12 @@ class RunSupervisor extends Command
         $this->folder = $this->folder();
 
         register_shutdown_function([$this, 'shutdown']);
-        pcntl_signal(SIGINT,  [$this, 'shutdown']);
-        pcntl_signal(SIGTERM, [$this, 'shutdown']);
-        pcntl_signal(SIGHUP,  [$this, 'shutdown']);
+
+        if (function_exists('pcntl_signal')) {
+            pcntl_signal(SIGINT,  [$this, 'shutdown']);
+            pcntl_signal(SIGTERM, [$this, 'shutdown']);
+            pcntl_signal(SIGHUP,  [$this, 'shutdown']);
+        }
     }
 
     /**
